@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f7fb">
+    <title>NETX | Router Command Center</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        :root {
+            --bg: #f4f7fb;
+            --panel: #ffffff;
+            --ink: #16212e;
+            --muted: #607085;
+            --line: #e1e8f0;
+            --soft: #eef3f9;
+
+            --blue: #1d6fe0;
+            --blue-dark: #1558b8;
+            --blue-soft: #e6f0ff;
+
+            --green: #14804a;
+            --green-soft: #e4f6ec;
+
+            --red: #c62d3f;
+            --red-soft: #fdeaec;
+
+            --term-bg: #0f1b2b;
+            --term-ink: #e3edf9;
+            --term-accent: #7cc4ff;
+
+            --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+            --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 40px 16px;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--sans);
+            line-height: 1.55;
+        }
+
+        main {
+            width: min(100%, 860px);
+            margin: 0 auto;
+        }
+
+        /* Top bar */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 36px;
+        }
+
+        .brand {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: .5px;
+            color: var(--blue);
+        }
+
+        .system-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            background: var(--green-soft);
+            color: var(--green);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+
+        /* Heading */
+        .eyebrow {
+            margin: 0 0 6px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            font-weight: 700;
+            letter-spacing: -.02em;
+            line-height: 1.15;
+        }
+
+        h1 span {
+            color: var(--blue);
+        }
+
+        .intro {
+            margin: 0 0 32px;
+            max-width: 560px;
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        /* Main panel */
+        .panel {
+            padding: 28px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(22, 33, 46, .06);
+        }
+
+        .panel h2 {
+            margin: 0 0 4px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .section-label {
+            margin: 0 0 18px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* Command list */
+        .command-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin: 0 0 24px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .command-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: var(--soft);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+
+        .command-list .num {
+            flex: none;
+            display: grid;
+            place-items: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--blue-soft);
+            color: var(--blue-dark);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .command-list code {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--ink);
+            overflow-wrap: anywhere;
+        }
+
+        /* Button */
+        button {
+            width: 100%;
+            min-height: 50px;
+            padding: 0 28px;
+            background: var(--blue);
+            color: #fff;
+            border: 0;
+            border-radius: 8px;
+            font-family: var(--sans);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--blue-dark);
+        }
+
+        button:focus-visible {
+            outline: 3px solid var(--blue-soft);
+            outline-offset: 2px;
+            box-shadow: 0 0 0 2px var(--blue);
+        }
+
+        button:disabled {
+            background: #8fb3ea;
+            cursor: wait;
+        }
+
+        /* Messages */
+        .message {
+            margin: 18px 0 0;
+            padding: 14px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .message-error {
+            background: var(--red-soft);
+            color: var(--red);
+            border: 1px solid #f5c2c8;
+        }
+
+        .empty-state {
+            background: var(--blue-soft);
+            color: var(--blue-dark);
+            border: 1px solid #c9dcfb;
+        }
+
+        /* Results */
+        .results {
+            display: grid;
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .results-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .results-heading h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .results-heading span {
+            padding: 3px 12px;
+            border-radius: 20px;
+            background: var(--green-soft);
+            color: var(--green);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .result-card {
+            overflow: hidden;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(22, 33, 46, .06);
+        }
+
+        .result-card h3 {
+            margin: 0;
+            padding: 12px 18px;
+            background: var(--blue-soft);
+            border-bottom: 1px solid var(--line);
+            color: var(--blue-dark);
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        pre {
+            max-height: 440px;
+            margin: 0;
+            padding: 18px;
+            overflow: auto;
+            background: var(--term-bg);
+            color: var(--term-ink);
+            font: 13px/1.7 var(--mono);
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        pre::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        pre::-webkit-scrollbar-thumb {
+            background: #3a4e68;
+            border-radius: 4px;
+        }
+
+        /* Footer */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 520px) {
+            body { padding: 24px 14px; }
+            .panel { padding: 20px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; }
+        }
+    </style>
+</head>
+
+<body>
+<main>
+
+    <header class="topbar">
+        <div class="brand">NETX</div>
+        <div class="system-status">
+            <span class="dot"></span>
+            Diagnostic mode, read only
+        </div>
+    </header>
+
+    <section>
+        <p class="eyebrow">Network tools</p>
+
+        <h1>Router <span>Command</span> Center</h1>
+
+        <p class="intro">
+            Run configured router diagnostics and inspect device information.
+        </p>
+    </section>
+
+    <section class="panel" aria-labelledby="commands-heading">
+
+        <h2 id="commands-heading">System commands</h2>
+
+        <p class="section-label">These diagnostics run when you press Execute.</p>
+
+        <ul class="command-list">
+            <li><span class="num">1</span><code>show version</code></li>
+            <li><span class="num">2</span><code>show ip interface brief</code></li>
+            <li><span class="num">3</span><code>show running-config</code></li>
+        </ul>
+
+        <form method="post" id="commandForm">
+            <button type="submit" id="runButton">
+                Execute commands
+            </button>
+        </form>
+
+        {% if error %}
+            <p class="message message-error" role="alert">
+                Error: {{ error }}
+            </p>
+
+        {% elif not results %}
+            <p class="message empty-state" role="status">
+                System ready. Waiting for command execution.
+            </p>
+        {% endif %}
+
+    </section>
+
+    {% if results %}
+    <section class="results" aria-labelledby="results-heading">
+
+        <div class="results-heading">
+            <h2 id="results-heading">Terminal output</h2>
+            <span>{{ results|length }} command(s) executed</span>
+        </div>
+
+        {% for command, output in results.items() %}
+        <article class="result-card">
+
+            <h3>{{ command }}</h3>
+
+            <pre>{{ output }}</pre>
+
+        </article>
+        {% endfor %}
+
+    </section>
+    {% endif %}
+
+    <footer class="footer">
+        <span>NETX router diagnostics</span>
+        <span>Secure local interface</span>
+    </footer>
+
+</main>
+
+<script>
+    const form = document.getElementById("commandForm");
+    const button = document.getElementById("runButton");
+
+    form.addEventListener("submit", function () {
+        button.disabled = true;
+        button.textContent = "Executing...";
+    });
+</script>
+
+</body>
+</html>
